@@ -211,6 +211,7 @@ void unit_action_match(int com_id, const std::string &json_str)
     simdjson::padded_string json_string(json_str);
     simdjson::ondemand::document doc;
     auto error = parser.iterate(json_string).get(doc);
+
     ALOGI("json format :%s", json_str.c_str());
 
     if (error) {

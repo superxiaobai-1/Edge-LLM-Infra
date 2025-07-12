@@ -50,6 +50,7 @@ void zmq_bus_com::stop()
 
 void zmq_bus_com::on_data(const std::string &data)
 {
+    std::cout << "on_data:" << data << std::endl;
 
     unit_action_match(_port, data);
 }
@@ -101,62 +102,35 @@ void zmq_com_send(int com_id, const std::string &out_str)
     _zmq.send_data(out);
 }
 
-void zmq_bus_com::select_json_str(const std::string &json_src, std::function<void(const std::string &)> out_fun)
+void compareStrings(const std::string &str1, const std::string &str2)
 {
-    const char *data = json_src.c_str();
-    // json_str_.reserve(json_str_.length() + json_src.length());
+    // 首先检查长度是否相同
+    if (str1.length() != str2.length()) {
+        std::cout << "字符串长度不同: "
+                  << "str1长度=" << str1.length() << ", str2长度=" << str2.length() << "\n";
+        return;
+    }
 
-    const auto length = json_src.length();
-    json_str_.reserve(json_str_.capacity() + length);
-
-    for (int i = 0; i < json_src.length(); i++)
-    {
-        // ARM NEON指令集优化（检测大括号）
-#if defined(__ARM_NEON) || defined(__ARM_NEON__)
-        if (json_src.length() - i >= 16)
-        {
-            uint8x16_t target_open = vdupq_n_u8('{');
-            uint8x16_t target_close = vdupq_n_u8('}');
-            uint8x16_t input_vector = vld1q_u8((const uint8_t *)&data[i]);
-
-            uint8x16_t result_open = vceqq_u8(input_vector, target_open);
-            uint8x16_t result_close = vceqq_u8(input_vector, target_close);
-            uint8x16_t result_mask = vorrq_u8(result_open, result_close);
-
-            __uint128_t jflage;
-            vst1q_u8((uint8_t *)&jflage, result_mask);
-            if (jflage == 0)
-            {
-                json_str_.append(data + i, 16);
-                i += 15;
-                continue;
-            }
-        }
-#endif
-
-        // 逐字符处理
-        json_str_ += data[i];
-        int last_index = (i == 0) ? 0 : (i - 1);
-
-        if ((data[i] == '{') && (data[last_index] != '\\'))
-            json_str_flage_++;
-        if ((data[i] == '}') && (data[last_index] != '\\'))
-            json_str_flage_--;
-
-        if (json_str_flage_ == 0)
-        {
-            if ((json_str_[0] == '{') && (json_str_.back() == '}'))
-            {
-                out_fun(json_str_);
-            }
-            json_str_.clear();
-        }
-
-        if (json_str_flage_ < 0)
-        {
-            json_str_flage_ = 0;
-            json_str_.clear();
-            throw std::runtime_error("JSON括号不匹配");
+    // 逐个字符比较
+    for (size_t i = 0; i < str1.length(); ++i) {
+        if (str1[i] != str2[i]) {
+            std::cout << "字符串在第 " << i + 1 << " 个字符处不同:\n"
+                      << "str1[" << i << "] = '" << str1[i] << "'\n"
+                      << "str2[" << i << "] = '" << str2[i] << "'\n";
+            return;
         }
     }
+
+    std::cout << "两个字符串完全相同\n";
+}
+
+void zmq_bus_com::select_json_str(const std::string &json_src, std::function<void(const std::string &)> out_fun)
+{
+
+    std::string test_json = json_src;
+
+    if (!test_json.empty() && test_json.back() == '\n') {
+        test_json.pop_back();
+    }
+    out_fun(test_json);
 }

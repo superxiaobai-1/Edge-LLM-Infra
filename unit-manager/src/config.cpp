@@ -11,7 +11,7 @@
 
 void load_default_config()
 {
-    std::ifstream file("./sys_config.json");
+    std::ifstream file("../master_config.json");
     if (!file.is_open()) {
         return;
     }
@@ -32,5 +32,4 @@ void load_default_config()
             key_sql[(std::string)it.key()] = (std::string)it.value();
         }
     }
-    system("rm libhv.*.log");
 }
