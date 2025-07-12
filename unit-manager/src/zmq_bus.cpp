@@ -102,27 +102,6 @@ void zmq_com_send(int com_id, const std::string &out_str)
     _zmq.send_data(out);
 }
 
-void compareStrings(const std::string &str1, const std::string &str2)
-{
-    // 首先检查长度是否相同
-    if (str1.length() != str2.length()) {
-        std::cout << "字符串长度不同: "
-                  << "str1长度=" << str1.length() << ", str2长度=" << str2.length() << "\n";
-        return;
-    }
-
-    // 逐个字符比较
-    for (size_t i = 0; i < str1.length(); ++i) {
-        if (str1[i] != str2[i]) {
-            std::cout << "字符串在第 " << i + 1 << " 个字符处不同:\n"
-                      << "str1[" << i << "] = '" << str1[i] << "'\n"
-                      << "str2[" << i << "] = '" << str2[i] << "'\n";
-            return;
-        }
-    }
-
-    std::cout << "两个字符串完全相同\n";
-}
 
 void zmq_bus_com::select_json_str(const std::string &json_src, std::function<void(const std::string &)> out_fun)
 {
